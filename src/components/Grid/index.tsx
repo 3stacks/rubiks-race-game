@@ -143,6 +143,35 @@ const isMoveValid = (
 	);
 };
 
+const highlightCenter = (board: BoardArray): BoardArray => {
+	return board.reduce((acc: BoardArray, curr: COLORS | null, index) => {
+		const blackoutIndices = [
+			0,
+			1,
+			2,
+			3,
+			4,
+			5,
+			9,
+			10,
+			14,
+			15,
+			19,
+			20,
+			21,
+			22,
+			23,
+			24,
+		];
+
+		if (blackoutIndices.includes(index)) {
+			return [...acc, null];
+		}
+
+		return [...acc, curr];
+	}, []);
+};
+
 const getStorageItem = (key: string): any | null => {
 	const itemFromStorage = localStorage.getItem(key);
 
@@ -238,7 +267,8 @@ const Grid = () => {
 		const matchingArea = pickMatchingIndices(board);
 		const isGameFinished = isEqual(matchingArea, target);
 
-		if (isGameFinished) {
+		if (isGameFinished && !isVictory) {
+			setBoard(highlightCenter);
 			setIsTimerActive(false);
 			setIsVictory(isGameFinished);
 			setHighScores((state) => {
