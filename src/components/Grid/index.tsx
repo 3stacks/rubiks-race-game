@@ -188,6 +188,7 @@ const Grid = () => {
 				/>
 			);
 		});
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [board]);
 	React.useEffect(() => {
 		const matchingArea = pickMatchingIndices(board);
@@ -196,6 +197,7 @@ const Grid = () => {
 		if (isGameFinished) {
 			setIsVictory(isGameFinished);
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [items]);
 	const parsedTime = React.useMemo(() => {
 		const minutes = Math.floor(time / 60);
