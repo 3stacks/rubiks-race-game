@@ -5,12 +5,14 @@ import GridItem from '../GridItem';
 
 const Root = styled.div`
 	height: 100%;
+	width: 620px;
 `;
 
 const ButtonContainer = styled.div`
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
+	flex-direction: column;
 `;
 
 const Board = styled.div`
@@ -54,6 +56,12 @@ const Preview = styled.div`
 	grid-template-columns: 1fr 1fr 1fr;
 	grid-template-rows: 1fr 1fr 1fr;
 	grid-gap: 15px;
+`;
+
+const Header = styled.div`
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	margin-bottom: 15px;
 `;
 
 export type BoardArray = (null | COLORS)[];
@@ -109,33 +117,17 @@ export const getInitialBoardList = (): (COLORS | null)[] => {
 	return randomBoard;
 };
 
-const getTargetIndex = (currentIndex: number, direction: string): number => {
-	if (direction === 'top') {
-		return currentIndex - 5;
-	}
-
-	if (direction === 'bottom') {
-		return currentIndex + 5;
-	}
-	if (direction === 'left') {
-		return currentIndex - 1;
-	}
-
-	return currentIndex + 1;
-};
-
 const isMoveValid = (
 	board: BoardArray,
-	index: number,
-	direction: string
+	emptyCellIndex: number,
+	index: number
 ): boolean => {
-	const targetIndex = getTargetIndex(index, direction);
-
-	if (typeof board[targetIndex] === 'undefined') {
-		return false;
-	}
-
-	return board[targetIndex] === null;
+	return (
+		emptyCellIndex === index - 1 ||
+		emptyCellIndex === index + 1 ||
+		emptyCellIndex === index + 5 ||
+		emptyCellIndex === index - 5
+	);
 };
 
 const Grid = () => {
@@ -146,19 +138,40 @@ const Grid = () => {
 		getInitialBoardList()
 	);
 	const [isVictory, setIsVictory] = React.useState<boolean>(false);
+	const [isTimerActive, setIsTimerActive] = React.useState<boolean>(false);
+	const [time, setTime] = React.useState<number>(0);
 	const handleResetButtonPressed = () => {
 		setTarget(getInitialTargetList());
 		setBoard(getInitialBoardList());
 	};
+	React.useEffect(() => {
+		const interval = setInterval(() => {
+			setTime((time) => time + 1000);
+		}, 1000);
 
-	const handleDirectionButtonPressed = (index: number, direction: string) => {
-		const canMoveBeMade = isMoveValid(board, index, direction);
+		return () => {
+			clearInterval(interval);
+		};
+	}, [isTimerActive]);
+	const emptyCellIndex = React.useMemo<number>(() => {
+		return board.findIndex((color) => color === null);
+	}, [board]);
+	const handleDirectionButtonPressed = (index: number) => {
+		if (isVictory) {
+			return;
+		}
+
+		if (!isTimerActive) {
+			setIsTimerActive(true);
+		}
+
+		const canMoveBeMade = isMoveValid(board, emptyCellIndex, index);
 
 		if (!canMoveBeMade) {
 			return;
 		}
 
-		setBoard(swapArrayItem(board, index, getTargetIndex(index, direction)));
+		setBoard(swapArrayItem(board, index, emptyCellIndex));
 	};
 
 	const items = React.useMemo(() => {
@@ -172,33 +185,35 @@ const Grid = () => {
 					color={color as COLORS}
 					index={index}
 					onDirectionButtonPressed={handleDirectionButtonPressed}
-				>
-					{index} {color}
-				</GridItem>
+				/>
 			);
 		});
 	}, [board]);
 	React.useEffect(() => {
 		const matchingArea = pickMatchingIndices(board);
+		const isGameFinished = isEqual(matchingArea, target);
 
-		console.log(matchingArea);
-		console.log('is it solved', isEqual(matchingArea, target));
-
-		setIsVictory(isEqual(matchingArea, target));
+		if (isGameFinished) {
+			setIsVictory(isGameFinished);
+		}
 	}, [items]);
 
 	return (
 		<Root>
-			<ButtonContainer>
-				<button onClick={handleResetButtonPressed} type="button">
-					Reset
-				</button>
-			</ButtonContainer>
-			<Preview>
-				{target.map((color, index) => (
-					<PreviewItem key={index} color={color} />
-				))}
-			</Preview>
+			<Header>
+				<ButtonContainer>
+					<h2>Timer</h2>
+					{time / 1000}
+					<button onClick={handleResetButtonPressed} type="button">
+						Reset
+					</button>
+				</ButtonContainer>
+				<Preview>
+					{target.map((color, index) => (
+						<PreviewItem key={index} color={color} />
+					))}
+				</Preview>
+			</Header>
 			{isVictory && <h2>You a winna</h2>}
 			<Board>{items}</Board>
 		</Root>
