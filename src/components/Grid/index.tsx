@@ -204,9 +204,7 @@ const Grid = () => {
 			return;
 		}
 
-		console.log('a');
 		if (!isTimerActive) {
-			console.log('b');
 			setIsTimerActive(true);
 		}
 
