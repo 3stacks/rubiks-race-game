@@ -178,24 +178,24 @@ const Grid = () => {
 		setBoard(getInitialBoardList());
 		setTime(0);
 		setIsTimerActive(false);
+		setIsVictory(false);
 	};
 	React.useEffect(() => {
 		setStorageItem('highScores', highScores);
 	}, [highScores]);
 	React.useEffect(() => {
-		if (isTimerActive && !timerInterval) {
+		if (isTimerActive) {
 			setTime(1);
 			setTimerInterval(
 				setInterval(() => {
 					setTime((time) => time + 1);
 				}, 1000)
 			);
-		}
-
-		if (!isTimerActive) {
+		} else {
 			clearInterval(timerInterval as number);
 		}
-	}, [isTimerActive, timerInterval]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [isTimerActive]);
 	const emptyCellIndex = React.useMemo<number>(() => {
 		return board.findIndex((color) => color === null);
 	}, [board]);
@@ -204,7 +204,9 @@ const Grid = () => {
 			return;
 		}
 
+		console.log('a');
 		if (!isTimerActive) {
+			console.log('b');
 			setIsTimerActive(true);
 		}
 
@@ -279,6 +281,13 @@ const Grid = () => {
 					))}
 				</ul>
 			)}
+			<button
+				onClick={() => {
+					setHighScores([]);
+				}}
+			>
+				Reset scores
+			</button>
 		</Root>
 	);
 };
