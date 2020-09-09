@@ -146,7 +146,7 @@ const Grid = () => {
 	};
 	React.useEffect(() => {
 		const interval = setInterval(() => {
-			setTime((time) => time + 1000);
+			setTime((time) => time + 1);
 		}, 1000);
 
 		return () => {
@@ -197,13 +197,19 @@ const Grid = () => {
 			setIsVictory(isGameFinished);
 		}
 	}, [items]);
+	const parsedTime = React.useMemo(() => {
+		const minutes = Math.floor(time / 60);
+		const seconds = time - minutes * 60;
+
+		return `${minutes}:${seconds}`;
+	}, [time]);
 
 	return (
 		<Root>
 			<Header>
 				<ButtonContainer>
 					<h2>Timer</h2>
-					{time / 1000}
+					{parsedTime}
 					<button onClick={handleResetButtonPressed} type="button">
 						Reset
 					</button>
