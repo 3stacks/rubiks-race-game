@@ -13,6 +13,10 @@ const ButtonContainer = styled.div`
 	justify-content: space-between;
 	align-items: center;
 	flex-direction: column;
+
+	span {
+		font-size: 2rem;
+	}
 `;
 
 const Board = styled.div`
@@ -49,13 +53,13 @@ const fullColourList = colors.reduce((acc: COLORS[], curr: COLORS) => {
 
 const Preview = styled.div`
 	display: grid;
-	width: 300px;
-	height: 300px;
+	width: 200px;
+	height: 200px;
 	background-color: black;
-	border: 15px solid black;
+	border: 5px solid black;
 	grid-template-columns: 1fr 1fr 1fr;
 	grid-template-rows: 1fr 1fr 1fr;
-	grid-gap: 15px;
+	grid-gap: 5px;
 `;
 
 const Header = styled.div`
@@ -108,6 +112,15 @@ export const getInitialTargetList = () => {
 	);
 };
 
+const formatTime = (input: number): string => {
+	const minutes = Math.floor(input / 60);
+	const seconds = input - minutes * 60;
+
+	return `${minutes > 9 ? minutes : `0${minutes}`}:${
+		seconds > 9 ? seconds : `0${seconds}`
+	}`;
+};
+
 export const getInitialBoardList = (): (COLORS | null)[] => {
 	const randomBoard = shuffle(fullColourList) as (COLORS | null)[];
 	const randomIndex = Math.floor(Math.random() * fullColourList.length);
@@ -130,6 +143,20 @@ const isMoveValid = (
 	);
 };
 
+const getStorageItem = (key: string): any | null => {
+	const itemFromStorage = localStorage.getItem(key);
+
+	if (itemFromStorage) {
+		return JSON.parse(itemFromStorage);
+	}
+
+	return null;
+};
+
+const setStorageItem = (key: string, item: any): void => {
+	localStorage.setItem(key, JSON.stringify(item));
+};
+
 const Grid = () => {
 	const [target, setTarget] = React.useState<COLORS[]>(
 		getInitialTargetList()
@@ -139,20 +166,36 @@ const Grid = () => {
 	);
 	const [isVictory, setIsVictory] = React.useState<boolean>(false);
 	const [isTimerActive, setIsTimerActive] = React.useState<boolean>(false);
+	const [timerInterval, setTimerInterval] = React.useState<number | null>(
+		null
+	);
+	const [highScores, setHighScores] = React.useState<any[]>(
+		getStorageItem('highScores') || []
+	);
 	const [time, setTime] = React.useState<number>(0);
 	const handleResetButtonPressed = () => {
 		setTarget(getInitialTargetList());
 		setBoard(getInitialBoardList());
+		setTime(0);
+		setIsTimerActive(false);
 	};
 	React.useEffect(() => {
-		const interval = setInterval(() => {
-			setTime((time) => time + 1);
-		}, 1000);
+		setStorageItem('highScores', highScores);
+	}, [highScores]);
+	React.useEffect(() => {
+		if (isTimerActive && !timerInterval) {
+			setTime(1);
+			setTimerInterval(
+				setInterval(() => {
+					setTime((time) => time + 1);
+				}, 1000)
+			);
+		}
 
-		return () => {
-			clearInterval(interval);
-		};
-	}, [isTimerActive]);
+		if (!isTimerActive) {
+			clearInterval(timerInterval as number);
+		}
+	}, [isTimerActive, timerInterval]);
 	const emptyCellIndex = React.useMemo<number>(() => {
 		return board.findIndex((color) => color === null);
 	}, [board]);
@@ -182,6 +225,7 @@ const Grid = () => {
 
 			return (
 				<GridItem
+					key={index}
 					color={color as COLORS}
 					index={index}
 					onDirectionButtonPressed={handleDirectionButtonPressed}
@@ -195,15 +239,16 @@ const Grid = () => {
 		const isGameFinished = isEqual(matchingArea, target);
 
 		if (isGameFinished) {
+			setIsTimerActive(false);
 			setIsVictory(isGameFinished);
+			setHighScores((state) => {
+				return [...state, time].sort();
+			});
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [items]);
 	const parsedTime = React.useMemo(() => {
-		const minutes = Math.floor(time / 60);
-		const seconds = time - minutes * 60;
-
-		return `${minutes}:${seconds}`;
+		return formatTime(time);
 	}, [time]);
 
 	return (
@@ -211,7 +256,8 @@ const Grid = () => {
 			<Header>
 				<ButtonContainer>
 					<h2>Timer</h2>
-					{parsedTime}
+					<span>{parsedTime}</span>
+					{isVictory && <h2>You a winna</h2>}
 					<button onClick={handleResetButtonPressed} type="button">
 						Reset
 					</button>
@@ -222,8 +268,17 @@ const Grid = () => {
 					))}
 				</Preview>
 			</Header>
-			{isVictory && <h2>You a winna</h2>}
 			<Board>{items}</Board>
+			<h2>High scores</h2>
+			{highScores.length === 0 ? (
+				<p>No scores yet...</p>
+			) : (
+				<ul>
+					{highScores.map((highScore, index) => (
+						<li key={index}>{formatTime(highScore)}</li>
+					))}
+				</ul>
+			)}
 		</Root>
 	);
 };
