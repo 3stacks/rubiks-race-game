@@ -319,6 +319,13 @@ function App() {
 							Reset
 						</button>
 					</ButtonContainer>
+					<h2>How to play</h2>
+					<p>
+						Click a colored square adjacent to the empty square to
+						move it to the empty slot. Your goal is to make the
+						centre 3x3 grid match the one above. The timer will
+						start when you first click on a block
+					</p>
 				</Sidebar>
 				<Main>
 					<Board>{items}</Board>
