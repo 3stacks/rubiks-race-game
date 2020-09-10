@@ -1,6 +1,6 @@
 import * as React from 'react';
 import styled from 'styled-components';
-import { COLORS } from '../Grid';
+import { COLORS } from '../App';
 
 const Root = styled.button<{ color: COLORS }>`
 	background-color: ${({ color }) => color};
