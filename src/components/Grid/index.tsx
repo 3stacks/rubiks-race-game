@@ -4,8 +4,11 @@ import isEqual from 'lodash/isEqual';
 import GridItem from '../GridItem';
 
 const Root = styled.div`
-	height: 100%;
-	width: 620px;
+	display: grid;
+	min-height: 100vh;
+	grid-template-columns: 250px auto;
+	grid-gap: 30px;
+	width: 100%;
 `;
 
 const ButtonContainer = styled.div`
@@ -62,10 +65,18 @@ const Preview = styled.div`
 	grid-gap: 5px;
 `;
 
-const Header = styled.div`
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	margin-bottom: 15px;
+const Sidebar = styled.div`
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 20px;
+`;
+
+const Main = styled.div`
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
 `;
 
 export type BoardArray = (null | COLORS)[];
@@ -283,7 +294,12 @@ const Grid = () => {
 
 	return (
 		<Root>
-			<Header>
+			<Sidebar>
+				<Preview>
+					{target.map((color, index) => (
+						<PreviewItem key={index} color={color} />
+					))}
+				</Preview>
 				<ButtonContainer>
 					<h2>Timer</h2>
 					<span>{parsedTime}</span>
@@ -292,30 +308,27 @@ const Grid = () => {
 						Reset
 					</button>
 				</ButtonContainer>
-				<Preview>
-					{target.map((color, index) => (
-						<PreviewItem key={index} color={color} />
-					))}
-				</Preview>
-			</Header>
-			<Board>{items}</Board>
-			<h2>High scores</h2>
-			{highScores.length === 0 ? (
-				<p>No scores yet...</p>
-			) : (
-				<ul>
-					{highScores.map((highScore, index) => (
-						<li key={index}>{formatTime(highScore)}</li>
-					))}
-				</ul>
-			)}
-			<button
-				onClick={() => {
-					setHighScores([]);
-				}}
-			>
-				Reset scores
-			</button>
+			</Sidebar>
+			<Main>
+				<Board>{items}</Board>
+				<h2>High scores</h2>
+				{highScores.length === 0 ? (
+					<p>No scores yet...</p>
+				) : (
+					<ol>
+						{highScores.map((highScore, index) => (
+							<li key={index}>{formatTime(highScore)}</li>
+						))}
+					</ol>
+				)}
+				<button
+					onClick={() => {
+						setHighScores([]);
+					}}
+				>
+					Reset scores
+				</button>
+			</Main>
 		</Root>
 	);
 };
